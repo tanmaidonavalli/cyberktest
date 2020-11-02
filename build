@@ -1,0 +1,18 @@
+#!/bin/bash -e
+
+git fetch --tags  # jenkins does not do this automatically yet
+
+docker-compose pull goreleaser
+
+echo "> Building and packaging binaries"
+docker-compose run --rm \
+  -T \
+  --entrypoint sh \
+  goreleaser -es << EOF
+    goreleaser release --rm-dist --skip-validate
+EOF
+
+# Needed for testing stages
+goos='linux'  # uname -s | tr '[:upper:]' '[:lower:]'
+goarch="amd64"
+cp dist/terraform-provider-conjur_${goos}_${goarch}/terraform-provider-conjur_v* .
